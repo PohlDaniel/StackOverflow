@@ -170,6 +170,8 @@ void loadMesh(CDXUTSDKMesh &mesh, ID3D10Device *device, const std::string &name,
 
 	hr = mesh.Create(device, CA2W(fullpath.c_str()), true);
 	if (FAILED(hr)) mesh.Create(device, CA2W(("..\\" + fullpath).c_str()), true);
+
+	//std::cout << mesh.GetNumMeshes() << std::cout;
 }
 
 HRESULT loadModelAndTexture(ID3D10Device *device, int modelIndex, int materialIndex, bool preload) {
@@ -560,7 +562,7 @@ void setupDragon() {
 	float sssWi = 200;
 	mainEffect->GetVariableByName("sssWidth")->AsScalar()->SetFloat(sssWi);
 
-	float trans = 0;
+	float trans = 0.0;
 	mainEffect->GetVariableByName("translucency")->AsScalar()->SetFloat(trans);
 
 	bool sssEnabled = true;
@@ -657,7 +659,7 @@ void setupStatue() {
 	float sssWi = 200;
 	mainEffect->GetVariableByName("sssWidth")->AsScalar()->SetFloat(sssWi);
 
-	float trans = 0;
+	float trans = 0.0;
 	mainEffect->GetVariableByName("translucency")->AsScalar()->SetFloat(trans);
 
 	bool sssEnabled = true;

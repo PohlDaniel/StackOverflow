@@ -15,9 +15,9 @@ uniform sampler2D u_textureColor;
 uniform sampler2D u_textureNormal;
 uniform sampler2D u_beckmannTex;
 
-uniform float bumpiness = 0.89;
-uniform float specularIntensity = 0.46;
-uniform float specularRoughness = 0.3;
+uniform float bumpiness = 1.0;
+uniform float specularIntensity = 1.0;
+uniform float specularRoughness = 0.08;
 uniform float specularFresnel = 0.81;
 
 uniform vec3 lightPosition[4];
@@ -236,8 +236,10 @@ void main(){
 			 if(separateSpeculars){
 			  outColor.rgb += shadow * f2 * diffuse;
 			  outSpecularColor.rgb += shadow * f1 * specular;
+			  //outSpecularColor.rgb = vec3(1.0, 1.0, 1.0);
 			 }else{
 			  outColor.rgb += shadow * (f2 * diffuse + f1 * specular);
+			  //outSpecularColor.rgb = vec3(1.0, 1.0, 1.0);
 			 }
 			 
 			  //outColor.rgb += shadow * (f1 * specular);
@@ -250,8 +252,7 @@ void main(){
 	}
 	// Add the ambient component:
     outColor.rgb += occlusion * ambient * albedo.rgb ;
-	
-	
+		
 	// Store the SSS strength:
     outSpecularColor.a = albedo.a;
 	
@@ -261,8 +262,7 @@ void main(){
 	// Calculate velocity in non-homogeneous projection space:	
 	vec2 currPosition = v_currPosition.xy/v_currPosition.w;
 	vec2 prevPosition = v_prevPosition.xy/v_prevPosition.w;
-	
-
+	 
     outVelocity = (currPosition - prevPosition);
 	
 	// Compress the velocity for storing it in a 8-bit render target:

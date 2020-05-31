@@ -23,7 +23,7 @@ bool g_enableVerticalSync;
 
 enum DIRECTION {DIR_FORWARD = 1, DIR_BACKWARD = 2, DIR_LEFT = 4, DIR_RIGHT = 8, DIR_UP = 16, DIR_DOWN = 32, DIR_FORCE_32BIT = 0x7FFFFFFF};
 
-enum Buffer {COLOR, DEPTH, VELOCITY, SPECCOLOR};
+enum Buffer {COLOR, DEPTH, VELOCITY, SPECCOLOR, BLURX, BLURY};
 
 Depthmap * depthmap[4];
 Camera* camera;
@@ -663,16 +663,19 @@ void render() {
 		main->loadFloat("lightAttenuation", 1.0f / 128.0f);
 		main->loadFloat("lightFarPlane", 100.0f);
 		main->loadFloat("lightBias", -0.01f);
-		main->loadBool("sssEnabled", sssEnabled);
-		main->loadBool("translucencyEnabled", true);
-		main->loadBool("separateSpeculars", true);
+
+		main->loadFloat("specularIntensity", 1.0);
+		main->loadFloat("specularRoughness", 0.08);
+		main->loadFloat("specularFresnel", 0.81);
+		main->loadFloat("bumpiness", 1.0);
+		main->loadFloat("ambient", 0.12f);
 		main->loadFloat("sssWidth", sssWidth);
 		main->loadFloat("translucency", 0.0f);
-		main->loadFloat("ambient", 0.12f);
-		main->loadFloat("bumpiness", 0.89);
-		main->loadFloat("specularIntensity", 0.0);
-		main->loadFloat("specularRoughness", 0.3);
-		main->loadFloat("specularFresnel", 0.81);	
+		main->loadBool("sssEnabled", sssEnabled);
+
+		main->loadBool("translucencyEnabled", true);
+		main->loadBool("separateSpeculars", false);
+
 
 		glBindFramebuffer(GL_FRAMEBUFFER, mainRT);
 
@@ -766,13 +769,16 @@ void render() {
 
 		break;
 	case DEPTH:
-		quad->render(sssColorY);
+		quad->render(gDepth);
 		break;
 	case VELOCITY:
-		quad->render(sssColorX);
+		quad->render(gVelocity);
 		break;
 	case SPECCOLOR:
-		quad->render(sssColorY);
+		quad->render(gSpecularColor);
+		break;
+	case BLURX:
+		quad->render(sssColorX);
 		break;
 	}
 }
