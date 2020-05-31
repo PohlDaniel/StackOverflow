@@ -15,8 +15,8 @@
 #include "Quad.h"
 #include "SeparableSSS.h"
 
-int height = 480;
-int width = 640;
+int height = 720;
+int width = 1280;
 
 POINT g_OldCursorPos;
 bool g_enableVerticalSync;
@@ -59,7 +59,7 @@ void enableVerticalSync(bool enableVerticalSync);
 // the main windows entry point
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd) {
 
-	Vector3f camPos(-1.30592, 3.259203, -4.11601);
+	Vector3f camPos(-1.30592, 6.259203, -8.11601);
 	Vector3f xAxis(1, 0, 0);
 	Vector3f yAxis(0, 1, 0);
 	Vector3f zAxis(0, 0, 1);
@@ -140,16 +140,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			// translate and dispatch message
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
-		}
-		else {
+		}else {
 
 
 			processInput(hwnd);
-
-
 			render();
 			//render2();
-
 			hdc = GetDC(hwnd);
 			SwapBuffers(hdc);
 			ReleaseDC(hwnd, hdc);
@@ -335,7 +331,6 @@ void initApp(HWND hWnd) {
 	if (bitmap->loadBitmap24("textures/BeckmannMap.bmp")) {
 		//bitmap->flipHorizontal();
 		//bitmap->flipVertical();
-
 		glGenTextures(1, &beckmannMap);
 		glBindTexture(GL_TEXTURE_2D, beckmannMap);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -352,15 +347,10 @@ void initApp(HWND hWnd) {
 	camera->perspective(20.0f, (GLfloat)width / (GLfloat)height, 1.0f, 2000.0f);
 
 
-	//glEnable(GL_CULL_FACE);				
-	//glDepthRange(-1.0, 100.0);
 	statue = new Object();
 	statue->initModel("objs/statue/statue.obj");
 
-	/*buddha->m_model->setRotXYZPos(Vector3f(0.0, 1.0, 0.0), 45.0,
-	Vector3f(1.0, 0.0, 0.0), 270.0,
-	Vector3f(0.0, 0.0, 1.0), 0.0,
-	0.0, 0.0, 0.0);*/
+	
 	statue->m_model->scale(0.5, 0.5 , 0.5 );
 
 	for (int j = 0; j < statue->m_model->getMesches().size(); j++) {
@@ -368,7 +358,7 @@ void initApp(HWND hWnd) {
 	}
 
 
-	depthmap[0] = new Depthmap(camera);
+	depthmap[0] = new Depthmap(camera, width, height);
 	depthmap[0]->setProjectionMatrix(45.0f, 1.0, 1.0f, 100.0f);
 
 	Vector3f lightPos1 = Vector3f(0.0, 0.0, -8.0);
@@ -380,7 +370,7 @@ void initApp(HWND hWnd) {
 	depthmap[0]->renderToDepth(statue);
 	depthmap[0]->renderToDepthPCF(statue);
 
-	depthmap[1] = new Depthmap(camera);
+	depthmap[1] = new Depthmap(camera, width, height);
 	depthmap[1]->setProjectionMatrix(45.0f, 1.0, 1.0f, 100.0f);
 
 	Vector3f lightPos2 = Vector3f(0.0, 0.0, 8.0);
@@ -392,7 +382,7 @@ void initApp(HWND hWnd) {
 	depthmap[1]->renderToDepth(statue);
 	depthmap[1]->renderToDepthPCF(statue);
 
-	depthmap[2] = new Depthmap(camera);
+	depthmap[2] = new Depthmap(camera, width, height);
 	depthmap[2]->setProjectionMatrix(45.0f, 1.0, 1.0f, 100.0f);
 
 	Vector3f lightPos3 = Vector3f(8.0, 0.0, 0.0);
@@ -404,7 +394,7 @@ void initApp(HWND hWnd) {
 	depthmap[2]->renderToDepth(statue);
 	depthmap[2]->renderToDepthPCF(statue);
 
-	depthmap[3] = new Depthmap(camera);
+	depthmap[3] = new Depthmap(camera, width, height);
 	depthmap[3]->setProjectionMatrix(45.0f, 1.0, 1.0f, 100.0f);
 
 	Vector3f lightPos4 = Vector3f(-8.0, 0.0, 0.0);
@@ -419,7 +409,22 @@ void initApp(HWND hWnd) {
 
 	main = new Shader("sss/Main.vert", "sss/Main.frag");
 	quad = new Quad();
+	
+	glUseProgram(main->m_program);
 	glUniform1i(glGetUniformLocation(main->m_program, "u_beckmannTex"), 7);
+
+	/*for (int i = 0; i < 4; i++) {
+		std::string uniform =std::string("u_shadowArray[") + std::to_string(i) + std::string("]");
+		std::cout << uniform << std::endl;
+		glUniform1i(glGetUniformLocation(main->m_program, (std::string("u_shadowArray[") + std::to_string(i) + std::string("]")).c_str()), i + 8);
+	}*/
+
+	glUniform1i(glGetUniformLocation(main->m_program, "u_shadowArray[0]"), 8);
+	glUniform1i(glGetUniformLocation(main->m_program, "u_shadowArray[1]"), 9);
+	glUniform1i(glGetUniformLocation(main->m_program, "u_shadowArray[2]"), 10);
+	glUniform1i(glGetUniformLocation(main->m_program, "u_shadowArray[3]"), 11);
+	glUseProgram(0);
+
 
 	sss = new SubsurfaceShader("sss/SparableSSS.vert", "sss/SparableSSS.frag");
 	separableSSS = new SeparableSSS();
@@ -660,7 +665,7 @@ void render() {
 		main->loadFloat("lightBias", -0.01f);
 		main->loadBool("sssEnabled", sssEnabled);
 		main->loadBool("translucencyEnabled", true);
-		main->loadBool("separateSpeculars", false);
+		main->loadBool("separateSpeculars", true);
 		main->loadFloat("sssWidth", sssWidth);
 		main->loadFloat("translucency", 0.0f);
 		main->loadFloat("ambient", 0.12f);
@@ -681,12 +686,25 @@ void render() {
 			glBindBuffer(GL_ARRAY_BUFFER, statue->m_model->getMesches()[i]->getVertexName());
 
 			main->bindAttributes(statue->m_model->getMesches()[i], depthmap[0]->depthmapTexture, depthmap[0]->depthmapTexturePCF);
+			
 			glActiveTexture(GL_TEXTURE7);
 			glBindTexture(GL_TEXTURE_2D, beckmannMap);
+
+			for (int k = 0; k < 4; k++) {
+			
+				glActiveTexture(GL_TEXTURE8 + k);
+				glBindTexture(GL_TEXTURE_2D, depthmap[k]->depthmapTexture);
+			}
 
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, statue->m_model->getMesches()[i]->getIndexName());
 			glDrawElements(GL_TRIANGLES, statue->m_model->getMesches()[i]->getNumberOfTriangles() * 3, GL_UNSIGNED_INT, 0);
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+
+			for (int k = 0; k < 5; k++) {
+				glActiveTexture(GL_TEXTURE7 + k);
+				glBindTexture(GL_TEXTURE_2D, 0);
+			}
 
 			main->unbindAttributes(statue->m_model->getMesches()[i]);
 

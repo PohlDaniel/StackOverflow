@@ -370,7 +370,7 @@ float4 RenderPS(RenderV2P input,
             // Add the transmittance component:
             if (sssEnabled && translucencyEnabled)
                 color.rgb += f2 * albedo.a * SSSSTransmittance3(translucency, sssWidth, input.worldPosition, input.normal, light, shadowMaps[i], lights[i].viewProjection, lights[i].farPlane);
-				//color.rgb += f2 * albedo.a * SSSSTransmittance2(translucency, sssWidth, input.worldPosition, input.normal, light, shadowMaps[i], lights[i].viewProjection, 1.0, lights[i].farPlane);
+				//color.rgb += f2 * albedo.a * SSSSTransmittance4(translucency, sssWidth, input.worldPosition, input.normal, light, shadowMaps[i], lights[i].viewProjection, 1.0, lights[i].farPlane);
         }
     }
 
@@ -474,7 +474,7 @@ float4 RenderTSNMPS(RenderV2P input,
             // Add the transmittance component:
             if (sssEnabled && translucencyEnabled)
                 color.rgb += f2 * albedo.a * SSSSTransmittance3(translucency, sssWidth, input.worldPosition, input.normal, light, shadowMaps[i], lights[i].viewProjection, lights[i].farPlane);
-				//color.rgb += f2 * albedo.a * SSSSTransmittance2(translucency, sssWidth, input.worldPosition, input.normal, light, shadowMaps[i], lights[i].viewProjection, 1.0, lights[i].farPlane);
+				//color.rgb += f2 * albedo.a * SSSSTransmittance4(translucency, sssWidth, input.worldPosition, input.normal, light, shadowMaps[i], lights[i].viewProjection, 1.0, lights[i].farPlane);
         }
     }
 

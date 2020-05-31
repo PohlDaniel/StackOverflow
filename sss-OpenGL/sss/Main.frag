@@ -8,8 +8,9 @@ layout (location = 3) out vec4  outColor;
 uniform float near = 1.0; 
 uniform float far  = 100.0; 
 
-uniform sampler2D u_texture;
-uniform sampler2DShadow u_shadow;
+uniform sampler2D u_shadow;
+uniform sampler2DShadow u_shadowPCF;
+uniform sampler2D u_shadowArray[4];
 uniform sampler2D u_textureColor;
 uniform sampler2D u_textureNormal;
 uniform sampler2D u_beckmannTex;
@@ -111,7 +112,7 @@ float ShadowPCF(vec4 _shadowPosition) {
         for (int x = -1 ; x <= 1 ; x++) {
             vec2 Offsets = vec2(x * xOffset, y * yOffset);
             vec3 UVC = vec3(UVCoords + Offsets, z);
-            shadow += texture(u_shadow, UVC);
+            shadow += texture(u_shadowPCF, UVC);
         }
     }
 
@@ -141,7 +142,7 @@ vec3 SSSSTransmittance( float translucency, float sssWidth, vec3 worldNormal, ve
    float scale = sssWidth * (1.0 - translucency);
 
    vec4 scPostW = shadowPos/shadowPos.w;
-   float zIn =  texture2D(u_texture, scPostW.xy ).r;
+   float zIn =  texture2D(shadowMap, scPostW.xy ).r;
    float zOut = scPostW.z;
 
    zIn = getDepthPassSpaceZ(zIn, 1.0, 100.0);
@@ -205,7 +206,7 @@ void main(){
 	for (int i = 0; i < 4; i++) {
 		vec3 light = lightPosition[i] - v_worldPosition;
 		float dist = length(light);
-		light /= dist;
+		light = light/dist;
    
 		float spot = dot(lightDirection[i], -light);
 		if (spot > lightFalloffStart) {
@@ -231,25 +232,26 @@ void main(){
 			 // And also the shadowing:
              float shadow = ShadowPCF(sc[i]);
 			 shadow = 1.0;
-			 /*
+			 
 			 if(separateSpeculars){
 			  outColor.rgb += shadow * f2 * diffuse;
 			  outSpecularColor.rgb += shadow * f1 * specular;
 			 }else{
 			  outColor.rgb += shadow * (f2 * diffuse + f1 * specular);
-			 }*/
+			 }
 			 
-			  outColor.rgb += shadow * (f1 * specular);
+			  //outColor.rgb += shadow * (f1 * specular);
 			 
 			  if (sssEnabled && translucencyEnabled){
 
-				outColor.rgb += f2 * albedo.a * SSSSTransmittance(translucency, sssWidth, normalize(v_normal), light, u_texture, sc[i]);
+				outColor.rgb += f2 * albedo.a * SSSSTransmittance(translucency, sssWidth, normalize(v_normal), light, u_shadowArray[i], sc[i]);
 			  }
 		}
 	}
 	// Add the ambient component:
     outColor.rgb += occlusion * ambient * albedo.rgb ;
- 
+	
+	
 	// Store the SSS strength:
     outSpecularColor.a = albedo.a;
 	

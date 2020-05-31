@@ -39,10 +39,11 @@ void Shader::loadSampler(){
 	glUniform1i(glGetUniformLocation(m_program, "u_textureColor"), 0);
 	glUniform1i(glGetUniformLocation(m_program, "u_textureNormal"), 1);
 	glUniform1i(glGetUniformLocation(m_program, "u_displace"), 2);
-	glUniform1i(glGetUniformLocation(m_program, "u_texture"), 3);
+	glUniform1i(glGetUniformLocation(m_program, "u_shadow"), 3);
 	glUniform1i(glGetUniformLocation(m_program, "u_normal"), 4);
-	glUniform1i(glGetUniformLocation(m_program, "u_shadow"), 5);
+	glUniform1i(glGetUniformLocation(m_program, "u_shadowPCF"), 5);
 	glUniform1i(glGetUniformLocation(m_program, "u_irradiance"), 6);
+	
 	glUseProgram(0);
 }
 
@@ -61,6 +62,8 @@ void Shader::bindAttributes(Mesh *a_mesh, GLuint texture1, GLuint texture2){
 
 	glActiveTexture(GL_TEXTURE6);
 	glBindTexture(GL_TEXTURE_2D, irradiance);
+
+	
 
 	if (a_mesh->m_hasTangents){
 
