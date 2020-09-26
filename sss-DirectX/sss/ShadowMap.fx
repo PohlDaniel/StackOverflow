@@ -41,7 +41,7 @@ struct VS_INPUT{
 float4 ShadowMapVS(VS_INPUT input,
 				   uniform float4x4 worldViewProjection) : SV_POSITION {
     float4 pos = mul(float4(input.position, 1.0), worldViewProjection);
-    pos.z *= pos.w; // We want linear positions
+    //pos.z *= pos.w; // We want linear positions
     return pos;
 }
 

@@ -1,20 +1,38 @@
 #include <iostream>
 #include "Vector.h"
 
-D3DXMATRIXA16 Matrix::getPerspective(float fovx, float aspect, float znear, float zfar){
+D3DXMATRIXA16 Matrix::getPerspectiveGL(float fovx, float aspect, float znear, float zfar){
 
 	float e = tanf(D3DX_PI * fovx / 360);
-	float xScale = (1 / e) / aspect;
-	float yScale = 1 / e;
+	float xScale = (1.0 / e) / aspect;
+	float yScale = 1.0 / e;
 
 	return D3DXMATRIXA16(xScale, 0.0f, 0.0f, 0.0f,
 						 0.0f, yScale, 0.0f, 0.0f,
-						 0.0f, 0.0f, zfar / (zfar - znear), 1.0f,
-						 0.0f, 0.0f, (zfar * znear) / (znear - zfar), 0.0f);
+						 0.0f, 0.0f, (zfar + znear) / (znear - zfar), 1.0f,
+						 0.0f, 0.0f, (2.0f * zfar * znear) / (znear - zfar), 0.0f);
 
 	/*std::cout << "Camera: " << D3DX_PI * fovx / 360 << "  " << aspect << "  " << znear << "  " << zfar << std::endl;
 
 	D3DXMATRIX projection;
+	D3DXMatrixPerspectiveFovLH(&projection, e, aspect, znear, zfar);
+	return tmp;*/
+}
+
+D3DXMATRIXA16 Matrix::getPerspectiveD3D(float fovx, float aspect, float znear, float zfar) {
+	
+	float e = tanf(D3DX_PI * fovx / 360);
+	float xScale = (1.0 / e) / aspect;
+	float yScale = 1.0 / e;
+	std::cout << "Camera: " << D3DX_PI * fovx / 360 << "  " << aspect << "  " << znear << "  " << zfar << "  " << e << "  " << 1/e << std::endl;
+	return D3DXMATRIXA16(xScale, 0.0f, 0.0f, 0.0f,
+		0.0f, yScale, 0.0f, 0.0f,
+		0.0f, 0.0f, zfar / (zfar - znear), 1.0f,
+		0.0f, 0.0f, (zfar * znear) / (znear - zfar), 0.0f);
+
+	
+
+	/*D3DXMATRIX projection;
 	D3DXMatrixPerspectiveFovLH(&projection, e, aspect, znear, zfar);
 	return tmp;*/
 }

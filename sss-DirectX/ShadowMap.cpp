@@ -1,3 +1,4 @@
+#include <iostream>
 #include "ShadowMap.h"
 #include "Vector.h"
 
@@ -53,7 +54,7 @@ void ShadowMap::begin() {
 
 
 	effect->GetVariableByName("view")->AsMatrix()->SetMatrix((float*)&m_viewMatrix);
-	effect->GetVariableByName("projection")->AsMatrix()->SetMatrix((float*)&m_linearProjMatrixD3D);
+	effect->GetVariableByName("projection")->AsMatrix()->SetMatrix((float*)&m_projMatrix);
 
 	device->OMSetRenderTargets(0, NULL, *depthStencil);
 
@@ -93,9 +94,10 @@ void ShadowMap::setViewMatrix(const D3DXVECTOR3 &lightPos, const D3DXVECTOR3 &ta
 
 void ShadowMap::setProjectionMatrix(float fovx, float aspect, float znear, float zfar) {
 
-	D3DXMatrixPerspectiveFovLH(&m_projMatrixD3D, fovx, (FLOAT)depthmapWidth / (FLOAT)depthmapHeight, znear, zfar);
+	D3DXMatrixPerspectiveFovLH(&m_projMatrixD3D, D3DXToRadian(fovx), (FLOAT)depthmapWidth / (FLOAT)depthmapHeight, znear, zfar);
 
-	m_projMatrix = Matrix::getPerspective(fovx, (FLOAT)depthmapWidth / (FLOAT)depthmapHeight, znear, zfar);
+	//m_projMatrix = Matrix::getPerspectiveGL(fovx, (FLOAT)depthmapWidth / (FLOAT)depthmapHeight, znear, zfar);
+	m_projMatrix = Matrix::getPerspectiveD3D(fovx, (FLOAT)depthmapWidth / (FLOAT)depthmapHeight, znear, zfar);
 	m_linearProjMatrixD3D = Matrix::getLinearPerspective(fovx, (FLOAT)depthmapWidth / (FLOAT)depthmapHeight, znear, zfar);
 }
 

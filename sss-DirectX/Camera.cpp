@@ -228,7 +228,7 @@ void Camera::perspective(float fovx, float aspect, float znear, float zfar){
 
 	// Construct a projection matrix based on the horizontal field of view
 	// 'fovx' rather than the more traditional vertical field of view 'fovy'.
-	m_projMatrix = Matrix::getPerspective(fovx, aspect, znear, zfar);
+	m_projMatrix = Matrix::getPerspectiveD3D(fovx, aspect, znear, zfar);
 	m_invProjMatrix = Matrix::getInvPerspective(fovx, aspect, znear, zfar);
 }
 

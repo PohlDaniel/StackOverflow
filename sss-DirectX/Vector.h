@@ -8,7 +8,8 @@
 class Matrix{
 
 public:
-	static D3DXMATRIXA16 getPerspective(float fovx, float aspect, float znear, float zfar);	
+	static D3DXMATRIXA16 getPerspectiveGL(float fovx, float aspect, float znear, float zfar);
+	static D3DXMATRIXA16 getPerspectiveD3D(float fovx, float aspect, float znear, float zfar);
 	static D3DXMATRIXA16 getInvPerspective(float fovx, float aspect, float znear, float zfar);
 	static D3DXMATRIXA16 getLookAT(const D3DXVECTOR3 &eye, const D3DXVECTOR3 &target, const D3DXVECTOR3 &up);
 	static D3DXMATRIXA16 getInvLookAT(const D3DXVECTOR3 &eye, const D3DXVECTOR3 &target, const D3DXVECTOR3 &up);

@@ -9,7 +9,7 @@ class Depthmap{
 
 public:
 
-	Depthmap(Camera* camera, int width, int height);
+	Depthmap(Camera* camera);
 	~Depthmap();
 
 	unsigned char *irradianceData;

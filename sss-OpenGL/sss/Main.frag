@@ -8,16 +8,15 @@ layout (location = 3) out vec4  outColor;
 uniform float near = 1.0; 
 uniform float far  = 100.0; 
 
-uniform sampler2D u_shadow;
-uniform sampler2DShadow u_shadowPCF;
-uniform sampler2D u_shadowArray[4];
+uniform sampler2D u_texture;
+uniform sampler2DShadow u_shadow;
 uniform sampler2D u_textureColor;
 uniform sampler2D u_textureNormal;
 uniform sampler2D u_beckmannTex;
 
-uniform float bumpiness = 1.0;
-uniform float specularIntensity = 1.0;
-uniform float specularRoughness = 0.08;
+uniform float bumpiness = 0.89;
+uniform float specularIntensity = 0.46;
+uniform float specularRoughness = 0.3;
 uniform float specularFresnel = 0.81;
 
 uniform vec3 lightPosition[4];
@@ -112,7 +111,7 @@ float ShadowPCF(vec4 _shadowPosition) {
         for (int x = -1 ; x <= 1 ; x++) {
             vec2 Offsets = vec2(x * xOffset, y * yOffset);
             vec3 UVC = vec3(UVCoords + Offsets, z);
-            shadow += texture(u_shadowPCF, UVC);
+            shadow += texture(u_shadow, UVC);
         }
     }
 
@@ -142,7 +141,7 @@ vec3 SSSSTransmittance( float translucency, float sssWidth, vec3 worldNormal, ve
    float scale = sssWidth * (1.0 - translucency);
 
    vec4 scPostW = shadowPos/shadowPos.w;
-   float zIn =  texture2D(shadowMap, scPostW.xy ).r;
+   float zIn =  texture2D(u_texture, scPostW.xy ).r;
    float zOut = scPostW.z;
 
    zIn = getDepthPassSpaceZ(zIn, 1.0, 100.0);
@@ -206,7 +205,7 @@ void main(){
 	for (int i = 0; i < 4; i++) {
 		vec3 light = lightPosition[i] - v_worldPosition;
 		float dist = length(light);
-		light = light/dist;
+		light /= dist;
    
 		float spot = dot(lightDirection[i], -light);
 		if (spot > lightFalloffStart) {
@@ -232,27 +231,25 @@ void main(){
 			 // And also the shadowing:
              float shadow = ShadowPCF(sc[i]);
 			 shadow = 1.0;
-			 
+			 /*
 			 if(separateSpeculars){
 			  outColor.rgb += shadow * f2 * diffuse;
 			  outSpecularColor.rgb += shadow * f1 * specular;
-			  //outSpecularColor.rgb = vec3(1.0, 1.0, 1.0);
 			 }else{
 			  outColor.rgb += shadow * (f2 * diffuse + f1 * specular);
-			  //outSpecularColor.rgb = vec3(1.0, 1.0, 1.0);
-			 }
+			 }*/
 			 
-			  //outColor.rgb += shadow * (f1 * specular);
+			  outColor.rgb += shadow * (f1 * specular);
 			 
 			  if (sssEnabled && translucencyEnabled){
 
-				outColor.rgb += f2 * albedo.a * SSSSTransmittance(translucency, sssWidth, normalize(v_normal), light, u_shadowArray[i], sc[i]);
+				outColor.rgb += f2 * albedo.a * SSSSTransmittance(translucency, sssWidth, normalize(v_normal), light, u_texture, sc[i]);
 			  }
 		}
 	}
 	// Add the ambient component:
     outColor.rgb += occlusion * ambient * albedo.rgb ;
-		
+ 
 	// Store the SSS strength:
     outSpecularColor.a = albedo.a;
 	
@@ -262,7 +259,8 @@ void main(){
 	// Calculate velocity in non-homogeneous projection space:	
 	vec2 currPosition = v_currPosition.xy/v_currPosition.w;
 	vec2 prevPosition = v_prevPosition.xy/v_prevPosition.w;
-	 
+	
+
     outVelocity = (currPosition - prevPosition);
 	
 	// Compress the velocity for storing it in a 8-bit render target:

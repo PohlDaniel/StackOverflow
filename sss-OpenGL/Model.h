@@ -140,7 +140,7 @@ public:
 
 private:
 
-	std::vector<float> m_vertexBuffer;
+	std::vector <float> m_vertexBuffer;
 	std::vector<int> m_indexBuffer;
 		
 	unsigned int m_numberTriangles, m_numberOfBytes;

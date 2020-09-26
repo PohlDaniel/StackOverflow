@@ -122,7 +122,7 @@ float3 variances2[5] = {
 	float3(0.000131, 0.014631, 0.013066)
 };
 
-float3 SSSSTransmittance3(float translucency,
+float3 SSSSTransmittanceLin(float translucency,
         float sssWidth,
         float3 worldPosition,
         float3 worldNormal,
@@ -132,6 +132,7 @@ float3 SSSSTransmittance3(float translucency,
         float lightFarPlane) {
    
 	float scale = sssWidth * (1.0 - translucency); // sssWidth in  mm / world space unit
+	
     float4 shrinkedPos = float4(worldPosition - 0.005 * worldNormal, 1.0);
     float4 shadowPosition = mul(shrinkedPos, lightViewProjection);
     float d1 = shadowMap.SampleLevel(PointSampler, shadowPosition.xy / shadowPosition.w, 0).r; // 'd1' has a range of 0..1
@@ -153,14 +154,28 @@ float3 SSSSTransmittance3(float translucency,
     return profile * saturate(0.3 + dot(light, -worldNormal));
 }
 
-float getDepthPassSpaceZ(float zWC, float near, float far){
+//OpenGL Range
+float getDepthPassSpaceZGL(float zWC, float near, float far){
 
-	// Assume standard depth range [0..1]  
-    float z_e =   (near * far) / (far + zWC * (near - far));	//[near, far]
+	// Assume standard depth range [0..1]
+    float z_n = 2.0 * zWC - 1.0;
+    float z_e =  (2.0 * near * far) / (far + near + z_n * (near - far));	//[near, far]
+
+	//divided by far to get the range [near/far, 1.0] just for visualisation
+	//float z_e =  (2.0 * near) / (far + near + z_n * (near - far));	
+
 	return z_e;
 }
 
-float3 SSSSTransmittance4( float translucency, 
+//DirectX Range
+float getDepthPassSpaceZX(float zWC, float near, float far){
+
+	// Assume standard depth range [0..1]  
+    float z_e =   (near * far) / (far - zWC * (far - near));	//[near, far]
+	return z_e;
+}
+
+float3 SSSSTransmittanceGL( float translucency, 
 						   float sssWidth, 
 						   float3 worldPosition, 
 						   float3 worldNormal, 
@@ -170,7 +185,8 @@ float3 SSSSTransmittance4( float translucency,
 						   float lightNearPlane,
 						   float lightFarPlane){
 	
-	float scale = sssWidth * (1.0 - translucency);
+	//float scale = sssWidth * (1.0 - translucency);
+	float scale = sssWidth * (1.0 - 0.4);
 	
 	float4 shrinkedPos = float4(worldPosition - 0.005 * worldNormal, 1.0);
 	float4 shadowPosition = mul(shrinkedPos, lightViewProjection);
@@ -179,8 +195,44 @@ float3 SSSSTransmittance4( float translucency,
 	float zIn = shadowMap.SampleLevel(PointSampler, shadowPosition.xy, 0).r; 
 	float zOut = shadowPosition.z;
 	
-	zIn = getDepthPassSpaceZ(zIn, lightNearPlane, lightFarPlane);
-    zOut = getDepthPassSpaceZ(zOut, lightNearPlane, lightFarPlane);
+	zIn = getDepthPassSpaceZGL(zIn, lightNearPlane, lightFarPlane);
+    zOut = getDepthPassSpaceZGL(zOut, lightNearPlane, lightFarPlane);
+	
+	float d = scale * (zOut - zIn);
+	
+	float dd = -d * d;
+
+	float3 profile = weights2[0] * exp(dd / variances2[0]) +
+					 weights2[1] * exp(dd / variances2[1]) +
+					 weights2[2] * exp(dd / variances2[2]) +
+					 weights2[3] * exp(dd / variances2[3]) +
+					 weights2[4] * exp(dd / variances2[4]);
+
+    return profile * saturate(0.3 + dot(light, -worldNormal));
+}
+
+float3 SSSSTransmittanceX( float translucency, 
+						   float sssWidth, 
+						   float3 worldPosition, 
+						   float3 worldNormal, 
+						   float3 light, 
+						   Texture2D shadowMap, 
+						   float4x4 lightViewProjection,
+						   float lightNearPlane,
+						   float lightFarPlane){
+	
+	//float scale = sssWidth * (1.0 - translucency);
+	float scale = sssWidth * (1.0 - 0.4);
+	
+	float4 shrinkedPos = float4(worldPosition - 0.005 * worldNormal, 1.0);
+	float4 shadowPosition = mul(shrinkedPos, lightViewProjection);
+	shadowPosition = shadowPosition/shadowPosition.w;
+	
+	float zIn = shadowMap.SampleLevel(PointSampler, shadowPosition.xy, 0).r; 
+	float zOut = shadowPosition.z;
+	
+	zIn = getDepthPassSpaceZX(zIn, lightNearPlane, lightFarPlane);
+    zOut = getDepthPassSpaceZX(zOut, lightNearPlane, lightFarPlane);
 	
 	float d = scale * (zOut - zIn);
 	
@@ -368,9 +420,11 @@ float4 RenderPS(RenderV2P input,
             #endif
 
             // Add the transmittance component:
-            if (sssEnabled && translucencyEnabled)
-                color.rgb += f2 * albedo.a * SSSSTransmittance3(translucency, sssWidth, input.worldPosition, input.normal, light, shadowMaps[i], lights[i].viewProjection, lights[i].farPlane);
-				//color.rgb += f2 * albedo.a * SSSSTransmittance4(translucency, sssWidth, input.worldPosition, input.normal, light, shadowMaps[i], lights[i].viewProjection, 1.0, lights[i].farPlane);
+            if (sssEnabled && translucencyEnabled){
+                //color.rgb += f2 * albedo.a * SSSSTransmittanceLin(translucency, sssWidth, input.worldPosition, input.normal, light, shadowMaps[i], lights[i].viewProjection, lights[i].farPlane);
+				//color.rgb += f2 * albedo.a * SSSSTransmittanceGL(translucency, sssWidth, input.worldPosition, input.normal, light, shadowMaps[i], lights[i].viewProjection, 1.0, lights[i].farPlane);
+				color.rgb += f2 * albedo.a * SSSSTransmittanceX(translucency, sssWidth, input.worldPosition, input.normal, light, shadowMaps[i], lights[i].viewProjection, 1.0, lights[i].farPlane);
+			}
         }
     }
 
@@ -472,9 +526,9 @@ float4 RenderTSNMPS(RenderV2P input,
             #endif
 
             // Add the transmittance component:
-            if (sssEnabled && translucencyEnabled)
-                color.rgb += f2 * albedo.a * SSSSTransmittance3(translucency, sssWidth, input.worldPosition, input.normal, light, shadowMaps[i], lights[i].viewProjection, lights[i].farPlane);
-				//color.rgb += f2 * albedo.a * SSSSTransmittance4(translucency, sssWidth, input.worldPosition, input.normal, light, shadowMaps[i], lights[i].viewProjection, 1.0, lights[i].farPlane);
+            if (sssEnabled && translucencyEnabled){
+                color.rgb += f2 * albedo.a * SSSSTransmittanceLin(translucency, sssWidth, input.worldPosition, input.normal, light, shadowMaps[i], lights[i].viewProjection, lights[i].farPlane);
+			}
         }
     }
 

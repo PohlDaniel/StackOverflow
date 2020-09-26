@@ -1,9 +1,6 @@
 #include "Depthmap.h"
 
-Depthmap::Depthmap(Camera* camera, int width, int height){
-
-	viewportWidth = width;
-	viewportHeight = height;
+Depthmap::Depthmap(Camera* camera){
 
 	//char arrays for creating debug bitmaps
 	irradianceData = (unsigned char*)malloc(3 * depthmapWidth * depthmapHeight);

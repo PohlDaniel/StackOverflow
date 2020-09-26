@@ -34,10 +34,6 @@ extern "C" {
 #define GL_TEXTURE5                       0x84C5
 #define GL_TEXTURE6                       0x84C6
 #define GL_TEXTURE7                       0x84C7
-#define GL_TEXTURE8						  0x84C8
-#define GL_TEXTURE9						  0x84C9
-#define GL_TEXTURE10					  0x84CA
-#define GL_TEXTURE11					  0x84CB
 #define GL_TEXTURE_CUBE_MAP               0x8513
 #define GL_TEXTURE_BINDING_CUBE_MAP       0x8514
 #define GL_TEXTURE_CUBE_MAP_POSITIVE_X    0x8515
